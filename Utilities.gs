@@ -22,16 +22,14 @@ function getByRangeName(spreadsheetTabName, rangeName, axis = "row") {
   } catch (err) {
     let sheet = SpreadsheetApp.getActiveSpreadsheet();
     let error = "Could not find range name: " + rangeName + ". Error: " + err;
-    //sheet.toast(error);
-    Logger.log(errror);
-    //throw new Error(error);
+    Logger.log(error);
 
     return rangeName;
   }
 }
 
 function formatDate(dateString) {
-      return Utilities.formatDate(new Date(dateString), Definitions.timeZone, "MM/dd/yyyy");
+  return Utilities.formatDate(new Date(dateString), Definitions.timeZone, "MM/dd/yyyy");
 } 
 
 function testNamedRanges() {

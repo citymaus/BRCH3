@@ -24,7 +24,7 @@ var Rows = {
   // Returns range row (integer) by named range
   // To name ranges, from spreadsheet: Data > Named Ranges
   firstPaymentsDataRow  : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.HeaderRow' ,'row'),
-  paymentDueDataRow     : getByRangeName(Definitions.habOrdersTabName, 'HabOrders.TotalDue' ,'row') + 1,
+  paymentDueDataRow     : getByRangeName(Definitions.habOrdersTabName, 'HabOrders.TotalDue' ,'row'),
 };
 
 var Columns = {

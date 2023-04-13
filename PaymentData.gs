@@ -6,7 +6,7 @@
 // Please ping me with questions or for debugging assistance!
 // steph.stubler@gmail.com
 //
-// This is where the meat of parsing emails with regexes live.
+// This is where the meat of parsing emails with regexes lives.
 //-----------------------------------------------------------
 class PaymentData {
   constructor(emailSubject, emailDate, emailContent, partnerIndex = -1) {
@@ -339,7 +339,7 @@ class PaymentData {
 
       var dataRange = habOrdersSheet.getDataRange();
       var values = dataRange.getValues();
-      var firstRow = Rows.paymentDueDataRow;
+      var firstRow = Rows.paymentDueDataRow + 1;
       
       for (let i = firstRow; i < values.length; i++) 
       {
