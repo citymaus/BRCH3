@@ -14,7 +14,10 @@
 //-----------------------------------------------------------
 
 // Runs when editor opens spreadsheet
-// Add trigger with From spreadsheet - On open
+// Add trigger:
+//  Function to run = onOpen
+//  Event source = From spreadsheet
+//  Event type = On open
 function onOpen(source) {
   Logger.log("onOpen called. Trigger source: " + Object.values(source));
 
@@ -30,6 +33,10 @@ function onOpen(source) {
 }
 
 // Runs when Time-Driven event source trigger is called.
+// Add trigger:
+//  Function to run = onTimer
+//  Event source = Time-driven
+//  Time-based trigger type: hourly/daily/weekly/monthly
 function onTimer(source) {
   Logger.log("onTimer called. Trigger source: " + Object.values(source));
   

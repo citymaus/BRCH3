@@ -37,9 +37,11 @@ function wholeAssEmailScraper(calledFromTimer = false){
     let row = Rows.firstPaymentsDataRow + 1;
     let paymentId = 1;
 
-    // Clear rows
-    let rowsToClear = 200;
-    paymentsSheet.getRange(row, Columns.paymentId, row + rowsToClear, Columns.duesPaid).clearContent();
+    if (ADD_DATA_TO_SHEET) {
+      // Clear rows
+      let rowsToClear = 200;
+      paymentsSheet.getRange(row, Columns.paymentId, row + rowsToClear, Columns.duesPaid).clearContent();
+    }
 
     // Iterate from oldest email message first
     for (let i = emailThreads.length - 1; i >= 0; i--) 
