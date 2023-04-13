@@ -1,6 +1,7 @@
 // Definitions.gs
 
-var DEBUG = false;              // When true, loads test spreadsheet
+var DEBUG = false;              // When true, populates test spreadsheet
+var DEBUG_EMAIL = false;        // When true, loads emails from debug account (steph.stubler@gmail.com)
 var VERBOSE_LOGGING = true;     // When false, can speed up script run. (Max time limit is 6 mins)
 var ADD_DATA_TO_SHEET = true;   // Set to false to speed up debugging individual records, does not add data to spreadsheet
 
@@ -54,6 +55,8 @@ function getSheetProperties() {
 
   if (DEBUG) {  
     var sheetId = "1Fgouf6lhCP70HZFbuja_yTXX0byQipMqMvPom9NJgBs";
+  }
+  if (DEBUG_EMAIL) {
     var gmailLabel = "Burning Man/BRCH3";
   }
   return { sheetId: sheetId, gmailLabel: gmailLabel }
