@@ -8,6 +8,9 @@
 // 
 // For use with 2023 master camp spreadsheet:
 // https://docs.google.com/spreadsheets/d/1wQxWVkbhc3m5-MdFntN-sf26Oy6rZHHnXnemCWqRVTo
+//
+// Link to public git repo for version tracking:
+// https://github.com/citymaus/BRCH3
 //-----------------------------------------------------------
 function wholeAssEmailScraper(calledFromTimer = false){
   

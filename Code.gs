@@ -1,3 +1,18 @@
+Code.gs
+//-----------------------------------------------------------
+// 2023-04-12 
+// SKS (Whole Ass) 
+// 
+// Please ping me with questions or for debugging assistance!
+// steph.stubler@gmail.com
+// 
+// For use with 2023 master camp spreadsheet:
+// https://docs.google.com/spreadsheets/d/1wQxWVkbhc3m5-MdFntN-sf26Oy6rZHHnXnemCWqRVTo
+//
+// Link to public git repo for version tracking:
+// https://github.com/citymaus/BRCH3
+//-----------------------------------------------------------
+
 // Runs when editor opens spreadsheet
 // Add trigger with From spreadsheet - On open
 function onOpen(source) {
