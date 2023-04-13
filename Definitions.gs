@@ -1,7 +1,7 @@
 // Definitions.gs
 
-var DEBUG = false;              // When true, populates test spreadsheet
-var DEBUG_EMAIL = false;        // When true, loads emails from debug account (steph.stubler@gmail.com)
+var DEBUG = false;              // When true, populates test spreadsheet. Ignores script locking that waits for triggered runs
+var DEBUG_EMAIL = false;        // When true, loads emails from debug account / label
 var VERBOSE_LOGGING = true;     // When false, can speed up script run. (Max time limit is 6 mins)
 var ADD_DATA_TO_SHEET = true;   // Set to false to speed up debugging individual records, does not add data to spreadsheet
 
