@@ -9,28 +9,36 @@ function setActiveSpreadsheet(spreadsheetTabName) {
   return sheet;
 }
 
-function getByRangeName(spreadsheetTabName, rangeName, axis = "row") { 
+function getByRangeName(spreadsheetTabName, rangeName) { 
+  let row = null;
+  let col = null;
   try {
     setActiveSpreadsheet(spreadsheetTabName);
     var activeSheet = SpreadsheetApp.getActiveSpreadsheet();
     var range = activeSheet.getRangeByName(rangeName);
-    if (axis == "row")
-    {
-      return range.getRow();
-    }
-    return range.getColumn();
+
+    row = range.getRow();
+    col = range.getColumn();
   } catch (err) {
-    let sheet = SpreadsheetApp.getActiveSpreadsheet();
     let error = "Could not find range name: " + rangeName + ". Error: " + err;
     Logger.log(error);
-
-    return rangeName;
   }
+  return { row: row ?? rangeName, column: col ?? rangeName };
 }
 
 function formatDate(dateString) {
   return Utilities.formatDate(new Date(dateString), Definitions.timeZone, "MM/dd/yyyy");
 } 
+
+function formatCurrency(currency) {
+  currency = currency.toString();
+  let hasDollar = currency.indexOf("$") > -1;
+  return (hasDollar ? "" : "$") + parseFloat(currency);  
+}
+
+function parseCurrency(currency) {
+  return parseFloat(currency.replace("$", ""));
+}
 
 function testNamedRanges() {
   setActiveSpreadsheet(Definitions.paymentsTabName);    

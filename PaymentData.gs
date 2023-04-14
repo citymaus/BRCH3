@@ -9,7 +9,7 @@
 // This is where the meat of parsing emails with regexes lives.
 //-----------------------------------------------------------
 class PaymentData {
-  constructor(emailSubject, emailDate, emailContent, partnerIndex = -1) {
+  constructor(emailSubject, emailDate, emailContent, partnerIndex = null) {
     this.emailSubject = emailSubject;
     this.emailDate = emailDate;
     this.emailContent = emailContent;
@@ -30,6 +30,9 @@ class PaymentData {
     this.paymentDue = this.getPaymentDue();
     this.paymentAmountTotal = this.getAllPaymentsMade();
 
+    let test = this.paymentDue;
+    let test2 = this.paymentAmountTotal;
+
     if (VERBOSE_LOGGING) {
       Logger.log("Payment source: " + this.paymentSource); 
       Logger.log("Payment date: " + this.paymentDate);
@@ -43,7 +46,7 @@ class PaymentData {
     }
   }  
 
- getCamperData(moneySender, paymentDescription, partnerIndex = -1) {
+ getCamperData(moneySender, paymentDescription, partnerIndex = null) {
       let parsedFirstName = "?";
       let parsedLastName = "?";
       let parsedFullName = "?";
@@ -54,9 +57,9 @@ class PaymentData {
       var tab = Definitions.formResponsesTabName;
       var formResponseSheet = setActiveSpreadsheet(tab);
 
-      var hashNameHeaderCol = getByRangeName(tab, 'FormResponses.HashName' ,'col') - 1;
-      var firstNameHeaderCol = getByRangeName(tab, 'FormResponses.FirstName' ,'col') - 1;
-      var lastNameHeaderCol = getByRangeName(tab, 'FormResponses.LastName' ,'col') - 1;
+      var hashNameHeaderCol = getByRangeName(tab, 'FormResponses.HashName').column - 1;
+      var firstNameHeaderCol = getByRangeName(tab, 'FormResponses.FirstName').column - 1;
+      var lastNameHeaderCol = getByRangeName(tab, 'FormResponses.LastName').column - 1;
 
       var dataRange = formResponseSheet.getDataRange();
       var values = dataRange.getValues();
@@ -64,20 +67,19 @@ class PaymentData {
       //--------------------------------------------------------------------
       // Use partner index if defined (already passed through this function)      
       //--------------------------------------------------------------------
-      if (partnerIndex > -1) {        
+      if (partnerIndex != null) {        
         parsedFirstName = values[partnerIndex][firstNameHeaderCol];
         parsedLastName = values[partnerIndex][lastNameHeaderCol];
         parsedHashName = values[partnerIndex][hashNameHeaderCol];
         parsedFullName = parsedFirstName + " " + parsedLastName;
-        partnerIndex = -1;
+        partnerIndex = null;
       } else {
  
         //--------------------------------------------------------------------
         // Start from possible hash name inside payment description   
         //--------------------------------------------------------------------
-        var purchasePartnerIndex = -1;
-        for (var i = 1; i < values.length; i++) 
-        {
+        var purchasePartnerIndex = null;
+        for (var i = 1; i < values.length; i++) {
           let hashName = values[i][hashNameHeaderCol];
           var hasHashNameToFind = paymentDescription.length > 0 && hashName.length > 0;
           var foundHashName = hasHashNameToFind ? paymentDescription.toUpperCase().includes(hashName.toUpperCase())
@@ -102,7 +104,7 @@ class PaymentData {
             if (foundComplexHashName.length > 0) {
               let diff = hashName.length - foundComplexHashName.length;
               let acceptableDiff = 12; // Very scientific
-              let similarToExpectedHashName = hashName.length - foundComplexHashName.length < acceptableDiff;
+              let similarToExpectedHashName = diff < acceptableDiff;
               if (similarToExpectedHashName) {
                 Logger.log(" > Found camper by complex hash name: " + foundComplexHashName);
                 foundData = true;
@@ -128,7 +130,7 @@ class PaymentData {
           var hasFirstAndLastNameInMoneySender = moneySender.includes(" ") && moneySender.length > 1;
           var hasNameInMoneySender = moneySender.length > 1;
           var foundMultipleCandidates = false;
-          var candidate = -1;
+          var candidate = null;
 
           for (var i = 1; i < values.length; i++) 
           {
@@ -158,7 +160,7 @@ class PaymentData {
             else if (hasNameInMoneySender && 
                       (foundFirstNameInMoneySender || foundLastNameInMoneySender)
                     ) {
-              if (candidate == -1) {
+              if (candidate == null) {
                 candidate = i;
               }
               else {
@@ -173,7 +175,7 @@ class PaymentData {
           // Do not accept as match if multiple candidates are found. Otherwise,
           // assume this is a camper match.
           //--------------------------------------------------------------------
-          if (!foundMultipleCandidates && candidate > -1) {
+          if (!foundMultipleCandidates && candidate != null) {
             Logger.log(" > Found camper by (unique) first or last name.");
             Logger.log("  > First name: " + values[candidate][firstNameHeaderCol]);
             Logger.log("  > Last name: " + values[candidate][lastNameHeaderCol]);
@@ -334,8 +336,8 @@ class PaymentData {
       var tab = Definitions.habOrdersTabName;
       var habOrdersSheet = setActiveSpreadsheet(tab);
       
-      var hashNameHeaderCol = getByRangeName(tab, 'HabOrders.HashName' ,'col') - 1;
-      var totalDueHeaderCol = getByRangeName(tab, 'HabOrders.TotalDue' ,'col') - 1;
+      var hashNameHeaderCol = getByRangeName(tab, 'HabOrders.HashName').column - 1;
+      var totalDueHeaderCol = getByRangeName(tab, 'HabOrders.TotalDue').column - 1;
 
       var dataRange = habOrdersSheet.getDataRange();
       var values = dataRange.getValues();
@@ -358,7 +360,7 @@ class PaymentData {
       // Return to current Payments sheet      
       setActiveSpreadsheet(Definitions.paymentsTabName);
 
-      return "$" + totalDue;
+      return formatCurrency(totalDue);
   }
   
   //--------------------------------------------------------------------
@@ -367,10 +369,10 @@ class PaymentData {
   getAllPaymentsMade() {
     var tab = Definitions.paymentsTabName;
     var sheet = setActiveSpreadsheet(tab);    
-    var hashNameHeaderCol = getByRangeName(tab, 'ScrapedEmailData.HashName' ,'col') - 1;
-    var paymentAmountHeaderCol = getByRangeName(tab, 'ScrapedEmailData.PaymentAmount' ,'col') - 1;
+    var hashNameHeaderCol = getByRangeName(tab, 'ScrapedEmailData.HashName').column - 1;
+    var paymentAmountHeaderCol = getByRangeName(tab, 'ScrapedEmailData.PaymentAmount').column - 1;
 
-    let totalPaid = parseFloat(this.paymentAmount.replace("$", ""));
+    let totalPaid = parseCurrency(this.paymentAmount);
     let hasherNames = [ this.camperNames.hashName ];
 
     var dataRange = sheet.getDataRange();
@@ -385,13 +387,13 @@ class PaymentData {
 
         if (rowHasherName == hasherName) {
           let paymentAmountCell = values[i][paymentAmountHeaderCol].toString();          
-          let rowPaid = parseFloat(paymentAmountCell.replace("$", ""));
+          let rowPaid = parseCurrency(paymentAmountCell);
           let newSum = rowPaid + totalPaid;
           totalPaid = newSum;
         }
       }      
     }
-    return "$" + totalPaid;
+    return formatCurrency(totalPaid);
   }
 
   //--------------------------------------------------------------------

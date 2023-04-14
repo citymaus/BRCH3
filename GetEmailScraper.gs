@@ -23,7 +23,7 @@ function wholeAssEmailScraper(calledFromTimer = false){
   var startTime = Date.now();
 
   try {
-    var paymentsSheet = setActiveSpreadsheet('Payments');    
+    var paymentsSheet = setActiveSpreadsheet(Definitions.paymentsTabName);    
     var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
 
     if (!calledFromTimer) {
@@ -55,20 +55,20 @@ function wholeAssEmailScraper(calledFromTimer = false){
         var emailMsg = messages[j].getPlainBody();
    
         var paymentData = new PaymentData(emailSubject, emailDate, emailMsg);
-        var hasPartnerPayment = paymentData.camperNames.purchasePartnerIndex > -1;
+        var hasPartnerPayment = paymentData.camperNames.purchasePartnerIndex != null;
 
         if (hasPartnerPayment) {
           let partnerData = new PaymentData(emailSubject, emailDate, emailMsg, paymentData.camperNames.purchasePartnerIndex);
           
-          let firstAmount = parseFloat(paymentData.paymentDue.replace("$", ""));
-          let secondAmount = parseFloat(paymentData.paymentAmount.replace("$", "")) - firstAmount;
+          let firstAmount = parseCurrency(paymentData.paymentDue);
+          let secondAmount = parseCurrency(paymentData.paymentAmount) - firstAmount;
 
-          paymentData.paymentAmount = "$" + firstAmount;
-          partnerData.paymentAmount = "$" + secondAmount;
+          paymentData.paymentAmount = formatCurrency(firstAmount);
+          partnerData.paymentAmount = formatCurrency(secondAmount);
 
           // TODO, does not work if one or both partners makes another payment
-          paymentData.paymentAmountTotal = "$" + firstAmount;
-          partnerData.paymentAmountTotal = "$" + secondAmount;
+          paymentData.paymentAmountTotal = formatCurrency(firstAmount);
+          partnerData.paymentAmountTotal = formatCurrency(secondAmount);
 
           addDataToSheet(paymentsSheet,
             row, 
@@ -86,6 +86,7 @@ function wholeAssEmailScraper(calledFromTimer = false){
           emailSubject, 
           emailMsg, 
           paymentData);
+
         paymentId++;
         row++;    
       }  
@@ -95,17 +96,22 @@ function wholeAssEmailScraper(calledFromTimer = false){
   }
 
   var endTime = Date.now();
+  var totalRuntime = ((endTime - startTime)/1000).toString();
   lock.releaseLock();
 
-  Logger.log("Ran wholeAssEmailScraper in " + ((endTime - startTime)/1000).toString() + " seconds.");
+    Logger.log("Ran wholeAssEmailScraper in " + totalRuntime + " seconds.");
   Logger.log("----------------------------------------------------");
   Logger.log("SCRIPT COMPLETE");
+
+  if (!calledFromTimer) {
+    spreadsheet.toast("EMAIL SCRAPE SCRIPT COMPLETE. Runtime: " + totalRuntime + " seconds.");
+  }
 }
 
 function addDataToSheet(paymentsSheet, row, paymentId, emailSubject, emailMsg, paymentData) {
     try {
 
-      let balanceAfterFormula = paymentData.paymentDue.replace("$", "") - paymentData.paymentAmountTotal.replace("$", "");
+      let balanceAfterFormula = parseCurrency(paymentData.paymentDue) - parseCurrency(paymentData.paymentAmountTotal);
       let duesPaid = !(balanceAfterFormula > 0);
 
       // Turn off for faster debugging

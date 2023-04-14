@@ -23,30 +23,30 @@ var PaymentSource = {
 var Rows = {
   // Returns range row (integer) by named range
   // To name ranges, from spreadsheet: Data > Named Ranges
-  firstPaymentsDataRow  : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.HeaderRow' ,'row'),
-  paymentDueDataRow     : getByRangeName(Definitions.habOrdersTabName, 'HabOrders.TotalDue' ,'row'),
+  firstPaymentsDataRow  : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.HeaderRow').row,
+  paymentDueDataRow     : getByRangeName(Definitions.habOrdersTabName, 'HabOrders.TotalDue').row,
 };
 
 var Columns = {
   // Returns range column (integer) by named range
   // To name ranges, from spreadsheet: Data > Named Ranges
-  paymentId         : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentId', 'col'),
-  paymentIdOverride : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentIdOverride', 'col'),
-  emailSubject      : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.EmailSubject', 'col'),
-  emailMessage      : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.EmailMessage', 'col'),
-  paymentAmount     : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentAmount', 'col'),
-  paymentsTotal     : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentsTotal', 'col'),
-  paymentDue        : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentDue', 'col'),
-  paymentDate       : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentDate', 'col'),
-  paymentDescription: getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentDescription', 'col'),
-  balance           : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.Balance', 'col'),
-  duesPaid          : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.DuesPaid', 'col'),
-  hashName          : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.HashName', 'col'),
-  firstName         : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.First', 'col'),
-  lastName          : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.Last', 'col'),
-  fullName          : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.FullName', 'col'),
-  habOrderHashName  : getByRangeName(Definitions.habOrdersTabName, 'HabOrders.HashName', 'col'),
-  habOrderTotalDue  : getByRangeName(Definitions.habOrdersTabName, 'HabOrders.TotalDue', 'col'),
+  paymentId         : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentId').column,
+  paymentIdOverride : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentIdOverride').column,
+  emailSubject      : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.EmailSubject').column,
+  emailMessage      : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.EmailMessage').column,
+  paymentAmount     : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentAmount').column,
+  paymentsTotal     : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentsTotal').column,
+  paymentDue        : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentDue').column,
+  paymentDate       : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentDate').column,
+  paymentDescription: getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentDescription').column,
+  balance           : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.Balance').column,
+  duesPaid          : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.DuesPaid').column,
+  hashName          : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.HashName').column,
+  firstName         : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.First').column,
+  lastName          : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.Last').column,
+  fullName          : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.FullName').column,
+  habOrderHashName  : getByRangeName(Definitions.habOrdersTabName, 'HabOrders.HashName').column,
+  habOrderTotalDue  : getByRangeName(Definitions.habOrdersTabName, 'HabOrders.TotalDue').column,
 };
 
 function getSheetProperties() {  
