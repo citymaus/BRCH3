@@ -20,6 +20,29 @@ var PaymentSource = {
   BRCH3Website: "BRCH3Website"
 };
 
+var DuesTiers = [
+  { 
+    from: "3/8",
+    to: "3/31",
+    amount: "235"
+  },
+  { 
+    from: "4/1", 
+    to: "5/31", 
+    amount: "255"
+  },
+  { 
+    from: "6/1",
+    to: "7/7", 
+    amount: "275"
+  },
+  { 
+    from: "7/8", 
+    to: "8/4", 
+    amount: "290"
+  }
+]
+
 var Rows = {
   // Returns range row (integer) by named range
   // To name ranges, from spreadsheet: Data > Named Ranges
