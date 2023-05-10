@@ -40,6 +40,22 @@ function parseCurrency(currency) {
   return parseFloat(currency.replace("$", ""));
 }
 
+function calculateRequiredDues(paymentDate) {
+  let formattedPaymentDate = new Date(paymentDate);
+  let requiredDues = "999";
+
+  for (let tier = 0; tier < DuesTiers.length; tier++) {
+    let fromDate = new Date(DuesTiers[tier].from + "/" + new Date().getFullYear());
+    let toDate = new Date(DuesTiers[tier].to + "/" + new Date().getFullYear());
+
+    if (formattedPaymentDate >= fromDate && formattedPaymentDate <= toDate) {
+      requiredDues = DuesTiers[tier].amount;
+      break;
+    }
+  }
+  return parseFloat(requiredDues);
+}
+
 function testNamedRanges() {
   setActiveSpreadsheet(Definitions.paymentsTabName);    
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();

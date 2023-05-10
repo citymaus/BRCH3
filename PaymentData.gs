@@ -27,11 +27,8 @@ class PaymentData {
     this.paymentDate = this.getPaymentDate(); 
     this.partnerRow = partnerIndex;
     this.camperNames = this.getCamperData(this.getCamperName(), this.paymentDescription, this.partnerRow);
-    this.paymentDue = this.getPaymentDue();
+    this.paymentDue = this.getPaymentDue(this.paymentDate);
     this.paymentAmountTotal = this.getAllPaymentsMade();
-
-    let test = this.paymentDue;
-    let test2 = this.paymentAmountTotal;
 
     if (VERBOSE_LOGGING) {
       Logger.log("Payment source: " + this.paymentSource); 
@@ -331,7 +328,7 @@ class PaymentData {
     return content.match(regex)[group];
   }
 
-  getPaymentDue() {   
+  getPaymentDue(paymentDate) {   
       let totalDue = 0; 
       var tab = Definitions.habOrdersTabName;
       var habOrdersSheet = setActiveSpreadsheet(tab);
@@ -349,11 +346,24 @@ class PaymentData {
 
         if (rowHasherName == this.camperNames.hashName) {
           let totalDueCell = values[i][totalDueHeaderCol];
-          let regex = "Total: (.*) USD";
-          let group = 1;
+          let multipleAmountRegex = new RegExp(/(.*)(Amount: (.*) USD)/g);
+          let descriptionGroup = 1;
+          let amountGroup = 3;
+          var result = null;
 
-          totalDue = totalDueCell.match(regex)[group];
-          break;
+          while((result = multipleAmountRegex.exec(totalDueCell)) !== null) {          
+            let description = result[descriptionGroup];
+            let amount = result[amountGroup];
+
+            if (!description.toUpperCase().includes("CAMP DUES")) {
+              totalDue += parseCurrency(amount);
+            }
+          }
+
+          let requiredDues = calculateRequiredDues(paymentDate);
+          if (Number.isInteger(requiredDues)) {
+            totalDue += requiredDues;
+          }
         }
       }
     
