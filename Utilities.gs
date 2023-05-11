@@ -40,7 +40,7 @@ function parseCurrency(currency) {
   return parseFloat(currency.replace("$", ""));
 }
 
-function calculateHabDues(totalDueCell) {
+function calculateHabDues(hashName, totalDueCell) {
   let habDues = 0;
   let multipleAmountRegex = new RegExp(/(.*)(Amount: (.*) USD)(.*Quantity: (\d+))*.*\)/g);
   let descriptionGroup = 1;
@@ -49,8 +49,9 @@ function calculateHabDues(totalDueCell) {
   var result = null;
 
   if (VERBOSE_LOGGING) {
-    Logger.log("  > JOTFORM DUES (ignore camp dues here, takes tier from last date saved):")
+    Logger.log("  > JOTFORM DUES for (" + hashName + ").");
     Logger.log("  " + totalDueCell.toString());
+    Logger.log("    (Ignore camp dues amount above, which lists tier from last date saved. Tiered dues are calculated by payment date.)");
   }
 
   while((result = multipleAmountRegex.exec(totalDueCell)) !== null) {          
@@ -84,6 +85,38 @@ function calculateRequiredDues(paymentDate) {
   return parseFloat(requiredDues);
 }
 
+function calculateTotalDues(earliestPaymentDate, hashName) {   
+      let totalDue = 0; 
+      var tab = Definitions.habOrdersTabName;
+      var habOrdersSheet = setActiveSpreadsheet(tab);
+      
+      var hashNameHeaderCol = Columns.habOrderHashName - 1;
+      var totalDueHeaderCol = Columns.habOrderTotalDue - 1;
+
+      var dataRange = habOrdersSheet.getDataRange();
+      var values = dataRange.getValues();
+      var firstRow = Rows.paymentDueDataRow + 1;
+      
+      for (let i = firstRow; i < values.length; i++) {
+        let rowHasherName = values[i][hashNameHeaderCol];
+
+        if (rowHasherName == hashName) {
+          let totalDueCell = values[i][totalDueHeaderCol];
+          let habDues = calculateHabDues(hashName, totalDueCell);
+          let requiredDues = calculateRequiredDues(earliestPaymentDate);
+
+          totalDue = parseFloat(requiredDues) + parseFloat(habDues);
+          
+          if (VERBOSE_LOGGING) {
+            Logger.log("     > " + hashName + " > camp dues: $" + requiredDues + " + hab dues: $" 
+                        + habDues + " = Total: $" + totalDue);
+          }
+          break;
+        }
+      }
+  return parseFloat(totalDue);
+}
+
 function findEarlierDate(firstDate, secondDate) {
   if (new Date(secondDate) < new Date(firstDate)) {
     return secondDate;
@@ -104,13 +137,14 @@ function parseEmailBody(emailBody) {
   return parsedEmailBody;
 }
 
-function getCamperNamesFromIdOverride(overrideId) {
+function getCamperNamesFromIdOverride(overrideId, totalPaid, paymentDate) {
   var tab = Definitions.paymentsTabName;
   var sheet = setActiveSpreadsheet(tab);  
   var manualIdCol = Columns.manualId - 1;
   var manualFirstCol = Columns.manualfirstName - 1;
   var manualLastCol = Columns.manualLastName - 1;
   var manualHashCol = Columns.manualHashName - 1;
+  var totalPaidCol = Columns.paymentsTotal - 1; 
 
   var dataRange = sheet.getDataRange();
   var values = dataRange.getValues();
@@ -124,7 +158,17 @@ function getCamperNamesFromIdOverride(overrideId) {
         let lastName = values[i][manualLastCol];
         let fullName = firstName + " " + lastName;
         let hashName = values[i][manualHashCol];
-        return { firstName: firstName, lastName: lastName, fullName: fullName, hashName: hashName };
+
+        let totalDue = calculateTotalDues(paymentDate, hashName);
+
+        return { 
+          firstName: firstName, 
+          lastName: lastName, 
+          fullName: fullName, 
+          hashName: hashName,
+          totalPaid: totalPaid,
+          totalDue: totalDue
+        };
       }
     }
   }

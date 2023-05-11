@@ -115,6 +115,8 @@ function manualIdOverride() {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet(); 
   var paymentIdCol = Columns.paymentId - 1;
   var hashNameHeaderCol = Columns.hashName - 1;
+  var paymentAmountCol = Columns.paymentAmount - 1;
+  var paymentDateCol = Columns.paymentDate - 1;
 
   var dataRange = sheet.getDataRange();
   var values = dataRange.getValues();
@@ -126,13 +128,15 @@ function manualIdOverride() {
   for (let i = firstRow; i < values.length; i++) {
     let rowHasherName = values[i][hashNameHeaderCol];
     if (rowHasherName == "?") {
-      let paymentId = values[i][paymentIdCol];
-      
-      let camperNames = getCamperNamesFromIdOverride(paymentId);
       Logger.log("Row " + i + " has blank hasher name.");
+      let paymentId = values[i][paymentIdCol];
+      let paymentAmount = values[i][paymentAmountCol];
+      let paymentDate = values[i][paymentDateCol];
+      
+      let camperNames = getCamperNamesFromIdOverride(paymentId, paymentAmount, paymentDate);
       if (camperNames != null) {
-        Logger.log("Filling row " + i + " with " + camperNames.hashName);
-        updateCamperNames(sheet, i + 1, camperNames);
+        Logger.log("Filling row " + i + " with " + camperNames.hashName);  
+        updateCamperNames(sheet, i + 1, camperNames, camperNames.totalDue, paymentAmount);
         count++;
       }
     }
@@ -142,19 +146,22 @@ function manualIdOverride() {
 
 function addDataToSheet(paymentsSheet, row, paymentId, emailSubject, emailMsg, paymentData) {
     try {
-
-      let balanceAfterFormula = parseCurrency(paymentData.paymentDue) - parseCurrency(paymentData.paymentAmountTotal);
-      let duesPaid = !(balanceAfterFormula > 0);
       
       if (paymentData.camperNames.hashName == "?") {
-        let camperNames = getCamperNamesFromIdOverride(paymentId);
+        let camperNames = getCamperNamesFromIdOverride(paymentId, paymentData.paymentAmount, paymentData.paymentDate);
         if (camperNames != null) {
           paymentData.camperNames.firstName = camperNames.firstName;
           paymentData.camperNames.lastName = camperNames.lastName;
           paymentData.camperNames.fullName = camperNames.firstName + " " + camperNames.lastName;
           paymentData.camperNames.hashName = camperNames.hashName;
+
+          paymentData.totalPaid = formatCurrency(camperNames.totalPaid);
+          paymentData.paymentDue = formatCurrency(camperNames.totalDue);
         }
       }
+
+      let balanceAfterFormula = parseCurrency(paymentData.paymentDue) - parseCurrency(paymentData.paymentAmountTotal);
+      let duesPaid = !(balanceAfterFormula > 0);
 
       // Turn off for faster debugging
       if (ADD_DATA_TO_SHEET) {
@@ -162,7 +169,7 @@ function addDataToSheet(paymentsSheet, row, paymentId, emailSubject, emailMsg, p
         paymentsSheet.getRange(row, Columns.emailSubject).setValue(emailSubject);
         paymentsSheet.getRange(row, Columns.paymentDate).setValue(paymentData.paymentDate);     
         paymentsSheet.getRange(row, Columns.emailMessage).setValue(emailMsg);
-        updateCamperNames(paymentsSheet, row, paymentData.camperNames);
+        updateCamperNames(paymentsSheet, row, paymentData.camperNames, paymentData.paymentDue, paymentData.paymentAmountTotal);
         paymentsSheet.getRange(row, Columns.paymentAmount).setValue(paymentData.paymentAmount); 
         paymentsSheet.getRange(row, Columns.paymentsTotal).setValue(paymentData.paymentAmountTotal); 
         paymentsSheet.getRange(row, Columns.paymentDue).setValue(paymentData.paymentDue); 
@@ -178,11 +185,16 @@ function addDataToSheet(paymentsSheet, row, paymentId, emailSubject, emailMsg, p
     }
 }
 
-function updateCamperNames(paymentsSheet, row, camperNames) {
+function updateCamperNames(paymentsSheet, row, camperNames, totalDue, totalPaid) {
   if (ADD_DATA_TO_SHEET) {
     paymentsSheet.getRange(row, Columns.firstName).setValue(camperNames.firstName);
     paymentsSheet.getRange(row, Columns.lastName).setValue(camperNames.lastName);
     paymentsSheet.getRange(row, Columns.fullName).setValue(camperNames.fullName);
     paymentsSheet.getRange(row, Columns.hashName).setValue(camperNames.hashName);
+
+    let balanceAfterPayment = totalPaid - totalDue;
+    paymentsSheet.getRange(row, Columns.paymentDue).setValue(totalDue);
+    paymentsSheet.getRange(row, Columns.paymentsTotal).setValue(totalPaid);
+    paymentsSheet.getRange(row, Columns.balance).setValue(balanceAfterPayment);
   }
 }
