@@ -80,9 +80,6 @@ class PaymentData {
         var purchasePartnerIndex = null;
         for (var i = 1; i < values.length; i++) {
           let hashName = values[i][hashNameHeaderCol];
-          
-          // TODO REMOVE
-          if (hashName.toUpperCase().includes("COCK")) {
 
           var hasHashNameToFind = paymentDescription.length > 0 && hashName.length > 0;
           let foundHashName = hasHashNameToFind ? paymentDescription.toUpperCase().includes(hashName.toUpperCase())
@@ -123,10 +120,7 @@ class PaymentData {
                 }
               }
             }
-          }
-        }
-        
-        // TODO REMOVE
+          }       
         }
 
         //--------------------------------------------------------------------
@@ -408,34 +402,30 @@ class PaymentData {
     let requiredDues = 0;
     let totalPaid = parseCurrency(this.paymentAmount);
     let earliestCampPaymentDate = this.paymentDate;
-    let hasherNames = [ this.camperNames.hashName ];
 
     var dataRange = sheet.getDataRange();
     var values = dataRange.getValues();
     var firstRow = Rows.firstPaymentsDataRow;
       
-    for (let j = 0; j < hasherNames.length; j++) {
-      let hasherName = hasherNames[j];
-      for (let i = firstRow; i < values.length; i++) 
-      {      
-        let rowHasherName = values[i][hashNameHeaderCol];
+    let hasherName = this.camperNames.hashName;
+    for (let i = firstRow; i < values.length; i++) {      
+      let rowHasherName = values[i][hashNameHeaderCol];
 
-        if (rowHasherName == hasherName) {
-          let paymentDateCell = formatDate(values[i][paymentDateHeaderCol].toString());
-          let earliestPayment = formatDate(findEarlierDate(earliestCampPaymentDate, paymentDateCell));
+      if (rowHasherName == hasherName) {
+        let paymentDateCell = formatDate(values[i][paymentDateHeaderCol].toString());
+        let earliestPayment = formatDate(findEarlierDate(earliestCampPaymentDate, paymentDateCell));
 
-          let paymentAmountCell = values[i][paymentAmountHeaderCol].toString();          
-          let rowPaid = parseCurrency(paymentAmountCell);
-          let newSum = rowPaid + totalPaid;
-          totalPaid = newSum;
+        let paymentAmountCell = values[i][paymentAmountHeaderCol].toString();          
+        let rowPaid = parseCurrency(paymentAmountCell);
+        let newSum = rowPaid + totalPaid;
+        totalPaid = newSum;
 
-          requiredDues = calculateRequiredDues(earliestPayment);
-          if (totalPaid >= parseCurrency(requiredDues.toString())) { 
-            earliestCampPaymentDate = earliestPayment;
-          }
+        requiredDues = calculateRequiredDues(earliestPayment);
+        if (totalPaid >= parseCurrency(requiredDues.toString())) { 
+          earliestCampPaymentDate = earliestPayment;
         }
-      }      
-    }
+      }
+    } 
     requiredDues = calculateRequiredDues(earliestCampPaymentDate);
     
     return { totalPaid: formatCurrency(totalPaid), requiredDues: requiredDues };
@@ -452,8 +442,8 @@ class PaymentData {
 
     for(var i = 0; i < registeredHashNameParts.length; i++) {
       let word = registeredHashNameParts[i];
-      let foundMatch = paymentDescription.match(word);
-      if (descriptionParts.includes(word) || (foundMatch != null)) {
+      let parenMatch = "(" + word + ")";
+      if (descriptionParts.includes(word) || descriptionParts.includes(parenMatch)) {
         foundHashName += word + " ";
       }
     }
