@@ -29,7 +29,7 @@ class PaymentData {
     this.camperNames = this.getCamperData(this.getCamperName(), this.paymentDescription, this.partnerRow);
 
     let postResult = this.makeMultipleRowCalculations();
-    this.paymentDue = this.getPaymentDue(postResult.requiredDues);
+    this.paymentDue = this.getPaymentDue(postResult.earliestPaymentDate);
     this.paymentAmountTotal = postResult.totalPaid;
 
     if (VERBOSE_LOGGING) {
@@ -359,29 +359,8 @@ class PaymentData {
     return content.match(regex)[group];
   }
 
-  getPaymentDue(requiredDues) {   
-      let totalDue = 0; 
-      var tab = Definitions.habOrdersTabName;
-      var habOrdersSheet = setActiveSpreadsheet(tab);
-      
-      var hashNameHeaderCol = Columns.habOrderHashName - 1;
-      var totalDueHeaderCol = Columns.habOrderTotalDue - 1;
-
-      var dataRange = habOrdersSheet.getDataRange();
-      var values = dataRange.getValues();
-      var firstRow = Rows.paymentDueDataRow + 1;
-      
-      for (let i = firstRow; i < values.length; i++) 
-      {
-        let rowHasherName = values[i][hashNameHeaderCol];
-
-        if (rowHasherName == this.camperNames.hashName) {
-          let totalDueCell = values[i][totalDueHeaderCol];
-          let habDues = calculateHabDues(totalDueCell);
-
-          totalDue = requiredDues + habDues;
-        }
-      }
+  getPaymentDue(earliestPaymentDate) {   
+      let totalDue = calculateTotalDues(earliestPaymentDate, this.camperNames.hashName);
     
       // Return to current Payments sheet      
       setActiveSpreadsheet(Definitions.paymentsTabName);
@@ -411,7 +390,7 @@ class PaymentData {
     for (let i = firstRow; i < values.length; i++) {      
       let rowHasherName = values[i][hashNameHeaderCol];
 
-      if (rowHasherName == hasherName) {
+      if (rowHasherName == hasherName && hasherName != "?") {
         let paymentDateCell = formatDate(values[i][paymentDateHeaderCol].toString());
         let earliestPayment = formatDate(findEarlierDate(earliestCampPaymentDate, paymentDateCell));
 
@@ -428,7 +407,7 @@ class PaymentData {
     } 
     requiredDues = calculateRequiredDues(earliestCampPaymentDate);
     
-    return { totalPaid: formatCurrency(totalPaid), requiredDues: requiredDues };
+    return { earliestPaymentDate: earliestCampPaymentDate, totalPaid: formatCurrency(totalPaid), requiredDues: requiredDues };
   }
 
   //--------------------------------------------------------------------
