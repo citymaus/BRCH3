@@ -114,16 +114,18 @@ function getCamperNamesFromIdOverride(overrideId) {
 
   var dataRange = sheet.getDataRange();
   var values = dataRange.getValues();
-  var firstRow = Rows.manualIdOverrideRow + 1;
+  var firstRow = Rows.manualIdOverrideRow;
 
   for (let i = firstRow; i < values.length; i++) {
     let paymentId = values[i][manualIdCol];
-    if (paymentId != "" && paymentId == overrideId) {  
-      let firstName = values[i][manualFirstCol];
-      let lastName = values[i][manualLastCol];
-      let fullName = firstName + " " + lastName;
-      let hashName = values[i][manualHashCol];
-      return { firstName: firstName, lastName: lastName, fullName: fullName, hashName: hashName };
+    if (paymentId != "" && Number.isInteger(paymentId)) {
+      if (paymentId == overrideId) {  
+        let firstName = values[i][manualFirstCol];
+        let lastName = values[i][manualLastCol];
+        let fullName = firstName + " " + lastName;
+        let hashName = values[i][manualHashCol];
+        return { firstName: firstName, lastName: lastName, fullName: fullName, hashName: hashName };
+      }
     }
   }
   return null;  
