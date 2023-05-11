@@ -11,6 +11,9 @@
 //
 // Link to public git repo for version tracking:
 // https://github.com/citymaus/BRCH3
+// 
+// To debug main scraper code, open GetEmailScraper.gs and
+//     click Debug (wholeAssScraper) above.
 //-----------------------------------------------------------
 
 // Runs when editor opens spreadsheet

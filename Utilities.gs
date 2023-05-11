@@ -40,13 +40,41 @@ function parseCurrency(currency) {
   return parseFloat(currency.replace("$", ""));
 }
 
+function calculateHabDues(totalDueCell) {
+  let habDues = 0;
+  let multipleAmountRegex = new RegExp(/(.*)(Amount: (.*) USD)(.*Quantity: (\d+))*.*\)/g);
+  let descriptionGroup = 1;
+  let amountGroup = 3;
+  let quantityGroup = 5;
+  var result = null;
+
+  if (VERBOSE_LOGGING) {
+    Logger.log("  > JOTFORM DUES (ignore camp dues here, takes tier from last date saved):")
+    Logger.log("  " + totalDueCell.toString());
+  }
+
+  while((result = multipleAmountRegex.exec(totalDueCell)) !== null) {          
+    let description = result[descriptionGroup];
+    let amount = result[amountGroup];
+    let quantity = result[quantityGroup];
+    if (typeof result[quantityGroup] == 'undefined') {
+      quantity = 1;
+    }
+
+    if (!description.toUpperCase().includes("CAMP DUES")) {
+      habDues += (parseCurrency(amount) * parseInt(quantity));
+    }
+  }
+  return habDues;
+}
+
 function calculateRequiredDues(paymentDate) {
   let formattedPaymentDate = new Date(paymentDate);
   let requiredDues = "999";
 
   for (let tier = 0; tier < DuesTiers.length; tier++) {
-    let fromDate = new Date(DuesTiers[tier].from + "/" + new Date().getFullYear());
-    let toDate = new Date(DuesTiers[tier].to + "/" + new Date().getFullYear());
+    let fromDate = new Date(DuesTiers[tier].fromDate + "/" + new Date().getFullYear());
+    let toDate = new Date(DuesTiers[tier].toDate + "/" + new Date().getFullYear());
 
     if (formattedPaymentDate >= fromDate && formattedPaymentDate <= toDate) {
       requiredDues = DuesTiers[tier].amount;
@@ -54,6 +82,26 @@ function calculateRequiredDues(paymentDate) {
     }
   }
   return parseFloat(requiredDues);
+}
+
+function findEarlierDate(firstDate, secondDate) {
+  if (new Date(secondDate) < new Date(firstDate)) {
+    return secondDate;
+  }
+  return firstDate;
+}
+
+function parseEmailBody(emailBody) {
+  let parsedEmailBody = emailBody;
+  let forwardedMessage = "---------- Forwarded message ---------";
+  let forwardRegex = ".*" + forwardedMessage + "[\r\n]+(.*[\r\n]*)*";
+
+  let foundMatch = emailBody.match(forwardRegex);
+
+  if (foundMatch !== null) {
+    parsedEmailBody = foundMatch[0].replace(forwardedMessage, "").trim();
+  }
+  return parsedEmailBody;
 }
 
 function testNamedRanges() {

@@ -52,7 +52,8 @@ function wholeAssEmailScraper(calledFromTimer = false){
       {
         var emailSubject = emailThreads[i].getFirstMessageSubject();
         var emailDate = emailThreads[i].getLastMessageDate();
-        var emailMsg = messages[j].getPlainBody();
+        var emailMsgOriginal = messages[j].getPlainBody();
+        var emailMsg = parseEmailBody(emailMsgOriginal);
    
         var paymentData = new PaymentData(emailSubject, emailDate, emailMsg);
         var hasPartnerPayment = paymentData.camperNames.purchasePartnerIndex != null;
@@ -99,7 +100,7 @@ function wholeAssEmailScraper(calledFromTimer = false){
   var totalRuntime = ((endTime - startTime)/1000).toString();
   lock.releaseLock();
 
-    Logger.log("Ran wholeAssEmailScraper in " + totalRuntime + " seconds.");
+  Logger.log("Ran wholeAssEmailScraper in " + totalRuntime + " seconds.");
   Logger.log("----------------------------------------------------");
   Logger.log("SCRIPT COMPLETE");
 
