@@ -49,13 +49,17 @@ var Rows = {
   // To name ranges, from spreadsheet: Data > Named Ranges
   firstPaymentsDataRow  : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.HeaderRow').row,
   paymentDueDataRow     : getByRangeName(Definitions.habOrdersTabName, 'HabOrders.TotalDue').row,
+  manualIdOverrideRow   : getByRangeName(Definitions.habOrdersTabName, 'ScrapedEmailData.ManualHashName').row,
 };
 
 var Columns = {
   // Returns range column (integer) by named range
   // To name ranges, from spreadsheet: Data > Named Ranges
   paymentId         : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentId').column,
-  paymentIdOverride : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentIdOverride').column,
+  manualId          : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.ManualId').column,
+  manualfirstName   : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.ManualFirstName').column,
+  manualLastName    : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.ManualLastName').column,
+  manualHashName    : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.ManualHashName').column,
   emailSubject      : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.EmailSubject').column,
   emailMessage      : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.EmailMessage').column,
   paymentAmount     : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentAmount').column,

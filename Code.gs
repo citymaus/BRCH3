@@ -30,6 +30,7 @@ function onOpen(source) {
   spreadsheet.toast("Adding 'Email Scraper' to menu...");
   var menuEntries = [ 
     {name: "Verify named ranges exist", functionName: "testNamedRanges"},
+    {name: "Run manual ID override...", functionName: "manualIdOverride"}, 
     {name: "Load order emails...", functionName: "wholeAssEmailScraper"} 
   ];
   spreadsheet.addMenu("Email Scraper", menuEntries);

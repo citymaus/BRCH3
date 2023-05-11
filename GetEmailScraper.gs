@@ -109,11 +109,52 @@ function wholeAssEmailScraper(calledFromTimer = false){
   }
 }
 
+function manualIdOverride() {
+  var tab = Definitions.paymentsTabName;
+  var sheet = setActiveSpreadsheet(tab);    
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet(); 
+  var paymentIdCol = Columns.paymentId - 1;
+  var hashNameHeaderCol = Columns.hashName - 1;
+
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  var firstRow = Rows.paymentDueDataRow + 1;
+  let count = 0;
+
+  spreadsheet.toast("Finding \"?\" row entries and attempting to manually override...");
+  
+  for (let i = firstRow; i < values.length; i++) {
+    let rowHasherName = values[i][hashNameHeaderCol];
+    if (rowHasherName == "?") {
+      let paymentId = values[i][paymentIdCol];
+      
+      let camperNames = getCamperNamesFromIdOverride(paymentId);
+      Logger.log("Row " + i + " has blank hasher name.");
+      if (camperNames != null) {
+        Logger.log("Filling row " + i + " with " + camperNames.hashName);
+        updateCamperNames(sheet, i + 1, camperNames);
+        count++;
+      }
+    }
+  }
+  spreadsheet.toast("Finished manual overrides. Rows updated: " + count);
+}
+
 function addDataToSheet(paymentsSheet, row, paymentId, emailSubject, emailMsg, paymentData) {
     try {
 
       let balanceAfterFormula = parseCurrency(paymentData.paymentDue) - parseCurrency(paymentData.paymentAmountTotal);
       let duesPaid = !(balanceAfterFormula > 0);
+      
+      if (paymentData.camperNames.hashName == "?") {
+        let camperNames = getCamperNamesFromIdOverride(paymentId);
+        if (camperNames != null) {
+          paymentData.camperNames.firstName = camperNames.firstName;
+          paymentData.camperNames.lastName = camperNames.lastName;
+          paymentData.camperNames.fullName = camperNames.firstName + " " + camperNames.lastName;
+          paymentData.camperNames.hashName = camperNames.hashName;
+        }
+      }
 
       // Turn off for faster debugging
       if (ADD_DATA_TO_SHEET) {
@@ -121,10 +162,7 @@ function addDataToSheet(paymentsSheet, row, paymentId, emailSubject, emailMsg, p
         paymentsSheet.getRange(row, Columns.emailSubject).setValue(emailSubject);
         paymentsSheet.getRange(row, Columns.paymentDate).setValue(paymentData.paymentDate);     
         paymentsSheet.getRange(row, Columns.emailMessage).setValue(emailMsg);
-        paymentsSheet.getRange(row, Columns.hashName).setValue(paymentData.camperNames.hashName);
-        paymentsSheet.getRange(row, Columns.firstName).setValue(paymentData.camperNames.firstName);
-        paymentsSheet.getRange(row, Columns.lastName).setValue(paymentData.camperNames.lastName);
-        paymentsSheet.getRange(row, Columns.fullName).setValue(paymentData.camperNames.fullName);
+        updateCamperNames(paymentsSheet, row, paymentData.camperNames);
         paymentsSheet.getRange(row, Columns.paymentAmount).setValue(paymentData.paymentAmount); 
         paymentsSheet.getRange(row, Columns.paymentsTotal).setValue(paymentData.paymentAmountTotal); 
         paymentsSheet.getRange(row, Columns.paymentDue).setValue(paymentData.paymentDue); 
@@ -138,4 +176,13 @@ function addDataToSheet(paymentsSheet, row, paymentId, emailSubject, emailMsg, p
     } catch (err) {
       Logger.log("Error writing payment to sheet: " + err.message);
     }
+}
+
+function updateCamperNames(paymentsSheet, row, camperNames) {
+  if (ADD_DATA_TO_SHEET) {
+    paymentsSheet.getRange(row, Columns.firstName).setValue(camperNames.firstName);
+    paymentsSheet.getRange(row, Columns.lastName).setValue(camperNames.lastName);
+    paymentsSheet.getRange(row, Columns.fullName).setValue(camperNames.fullName);
+    paymentsSheet.getRange(row, Columns.hashName).setValue(camperNames.hashName);
+  }
 }
