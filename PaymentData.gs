@@ -27,8 +27,10 @@ class PaymentData {
     this.paymentDate = this.getPaymentDate(); 
     this.partnerRow = partnerIndex;
     this.camperNames = this.getCamperData(this.getCamperName(), this.paymentDescription, this.partnerRow);
-    this.paymentDue = this.getPaymentDue(this.paymentDate);
-    this.paymentAmountTotal = this.getAllPaymentsMade();
+
+    let postResult = this.makeMultipleRowCalculations();
+    this.paymentDue = this.getPaymentDue(postResult.requiredDues);
+    this.paymentAmountTotal = postResult.totalPaid;
 
     if (VERBOSE_LOGGING) {
       Logger.log("Payment source: " + this.paymentSource); 
@@ -78,10 +80,14 @@ class PaymentData {
         var purchasePartnerIndex = null;
         for (var i = 1; i < values.length; i++) {
           let hashName = values[i][hashNameHeaderCol];
+          
+          // TODO REMOVE
+          if (hashName.toUpperCase().includes("COCK")) {
+
           var hasHashNameToFind = paymentDescription.length > 0 && hashName.length > 0;
-          var foundHashName = hasHashNameToFind ? paymentDescription.toUpperCase().includes(hashName.toUpperCase())
+          let foundHashName = hasHashNameToFind ? paymentDescription.toUpperCase().includes(hashName.toUpperCase())
                                                 : false;   
-          var foundComplexHashName = hasHashNameToFind ? this.tryComplexCamperName(hashName, paymentDescription)
+          let foundComplexHashName = hasHashNameToFind ? this.tryComplexCamperName(hashName, paymentDescription)
                                                 : false;   
 
           if (foundHashName) {
@@ -119,15 +125,18 @@ class PaymentData {
             }
           }
         }
+        
+        // TODO REMOVE
+        }
 
         //--------------------------------------------------------------------
         // Not found by hash name, try first AND last name
         //--------------------------------------------------------------------
         if (!foundData) { 
-          var hasFirstAndLastNameInMoneySender = moneySender.includes(" ") && moneySender.length > 1;
-          var hasNameInMoneySender = moneySender.length > 1;
-          var foundMultipleCandidates = false;
-          var candidate = null;
+          let hasFirstAndLastNameInMoneySender = moneySender.includes(" ") && moneySender.length > 1;
+          let hasNameInMoneySender = moneySender.length > 1;
+          let foundMultipleCandidates = false;
+          let candidate = null;
 
           for (var i = 1; i < values.length; i++) 
           {
@@ -149,6 +158,7 @@ class PaymentData {
               parsedLastName = values[i][lastNameHeaderCol];
               parsedHashName = values[i][hashNameHeaderCol];
               parsedFullName = parsedFirstName + " " + parsedLastName;
+              candidate = i;
               break;
             }
             //--------------------------------------------------------------------
@@ -211,11 +221,14 @@ class PaymentData {
   // Email parsing with regex section!
   //--------------------------------------------------------------------
   getPaymentSource() {
-    if (this.emailContent.toUpperCase().indexOf("ZELLE") > -1) {
+    if (this.emailContent.toUpperCase().includes("ZELLE")) {
       return PaymentSource.Zelle;
     }
-    if (this.emailContent.toUpperCase().indexOf("A WANKER GAVE US MONEY") > -1) {
+    if (this.emailContent.toUpperCase().includes("A WANKER GAVE US MONEY")) {
       return PaymentSource.BRCH3Website;
+    }
+    if (this.emailContent.toUpperCase().includes("PAYPAL")) {
+      return PaymentSource.PayPal;
     }
     return PaymentSource.GPay;
   }
@@ -254,6 +267,15 @@ class PaymentData {
           // Description not found.
         }
       }
+      case (PaymentSource.PayPal): {        
+        var regex = "\\[image: quote](\\r?\\n)+(.*)(\\r?\\n)+\\[image: quote]";
+        var group = 2;
+        try {
+          description = content.match(regex)[group];
+        } catch {
+          // Description not found.
+        }
+      }
     }
     return description;
   }
@@ -274,6 +296,11 @@ class PaymentData {
       }
       case (PaymentSource.BRCH3Website): {
         var regex = "Total: (\\$[0-9]+\\.[0-9]{2})";
+        var group = 1; // Item in parentheses, e.g., "$25.00"
+        break;
+      }
+      case (PaymentSource.PayPal): {   
+        var regex = "sent you (.*) USD";
         var group = 1; // Item in parentheses, e.g., "$25.00"
         break;
       }
@@ -301,6 +328,11 @@ class PaymentData {
         var group = 0; // Full date match, e.g., "March 14, 2023"
         break;
       }
+      case (PaymentSource.PayPal): {  
+        var regex = "\\*Transaction\\r?\\ndate\\*\\r?\\n(.*)\\r?\\n";
+        var group = 1; // Item in parentheses
+        break;
+      }
     }
     return formatDate(content.match(regex)[group]);
   }
@@ -324,17 +356,22 @@ class PaymentData {
         var group = 1; // Item in parentheses
         break;
       }
+      case (PaymentSource.PayPal): { 
+        var regex = "(.*) sent you \\$";
+        var group = 1; // Item in parentheses
+        break;
+      }
     }
     return content.match(regex)[group];
   }
 
-  getPaymentDue(paymentDate) {   
+  getPaymentDue(requiredDues) {   
       let totalDue = 0; 
       var tab = Definitions.habOrdersTabName;
       var habOrdersSheet = setActiveSpreadsheet(tab);
       
-      var hashNameHeaderCol = getByRangeName(tab, 'HabOrders.HashName').column - 1;
-      var totalDueHeaderCol = getByRangeName(tab, 'HabOrders.TotalDue').column - 1;
+      var hashNameHeaderCol = Columns.habOrderHashName - 1;
+      var totalDueHeaderCol = Columns.habOrderTotalDue - 1;
 
       var dataRange = habOrdersSheet.getDataRange();
       var values = dataRange.getValues();
@@ -346,24 +383,9 @@ class PaymentData {
 
         if (rowHasherName == this.camperNames.hashName) {
           let totalDueCell = values[i][totalDueHeaderCol];
-          let multipleAmountRegex = new RegExp(/(.*)(Amount: (.*) USD)/g);
-          let descriptionGroup = 1;
-          let amountGroup = 3;
-          var result = null;
+          let habDues = calculateHabDues(totalDueCell);
 
-          while((result = multipleAmountRegex.exec(totalDueCell)) !== null) {          
-            let description = result[descriptionGroup];
-            let amount = result[amountGroup];
-
-            if (!description.toUpperCase().includes("CAMP DUES")) {
-              totalDue += parseCurrency(amount);
-            }
-          }
-
-          let requiredDues = calculateRequiredDues(paymentDate);
-          if (Number.isInteger(requiredDues)) {
-            totalDue += requiredDues;
-          }
+          totalDue = requiredDues + habDues;
         }
       }
     
@@ -373,16 +395,19 @@ class PaymentData {
       return formatCurrency(totalDue);
   }
   
-  //--------------------------------------------------------------------
-  // Add up all existing rows matching camper name for total amount paid
-  //--------------------------------------------------------------------
-  getAllPaymentsMade() {
+  //---------------------------------------------------------------------------------------
+  // Look at all existing rows matching camper name for total amount paid and required dues
+  //---------------------------------------------------------------------------------------
+  makeMultipleRowCalculations() {
     var tab = Definitions.paymentsTabName;
     var sheet = setActiveSpreadsheet(tab);    
-    var hashNameHeaderCol = getByRangeName(tab, 'ScrapedEmailData.HashName').column - 1;
-    var paymentAmountHeaderCol = getByRangeName(tab, 'ScrapedEmailData.PaymentAmount').column - 1;
+    var hashNameHeaderCol = Columns.hashName - 1;
+    var paymentAmountHeaderCol = Columns.paymentAmount - 1;
+    var paymentDateHeaderCol = Columns.paymentDate - 1;
 
+    let requiredDues = 0;
     let totalPaid = parseCurrency(this.paymentAmount);
+    let earliestCampPaymentDate = this.paymentDate;
     let hasherNames = [ this.camperNames.hashName ];
 
     var dataRange = sheet.getDataRange();
@@ -396,14 +421,24 @@ class PaymentData {
         let rowHasherName = values[i][hashNameHeaderCol];
 
         if (rowHasherName == hasherName) {
+          let paymentDateCell = formatDate(values[i][paymentDateHeaderCol].toString());
+          let earliestPayment = formatDate(findEarlierDate(earliestCampPaymentDate, paymentDateCell));
+
           let paymentAmountCell = values[i][paymentAmountHeaderCol].toString();          
           let rowPaid = parseCurrency(paymentAmountCell);
           let newSum = rowPaid + totalPaid;
           totalPaid = newSum;
+
+          requiredDues = calculateRequiredDues(earliestPayment);
+          if (totalPaid >= parseCurrency(requiredDues.toString())) { 
+            earliestCampPaymentDate = earliestPayment;
+          }
         }
       }      
     }
-    return formatCurrency(totalPaid);
+    requiredDues = calculateRequiredDues(earliestCampPaymentDate);
+    
+    return { totalPaid: formatCurrency(totalPaid), requiredDues: requiredDues };
   }
 
   //--------------------------------------------------------------------
@@ -417,7 +452,8 @@ class PaymentData {
 
     for(var i = 0; i < registeredHashNameParts.length; i++) {
       let word = registeredHashNameParts[i];
-      if (descriptionParts.includes(word)) {
+      let foundMatch = paymentDescription.match(word);
+      if (descriptionParts.includes(word) || (foundMatch != null)) {
         foundHashName += word + " ";
       }
     }

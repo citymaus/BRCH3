@@ -17,31 +17,32 @@ var Definitions = {
 var PaymentSource = {
   Zelle: "ZELLE",
   GPay: "GPAY",
-  BRCH3Website: "BRCH3Website"
+  BRCH3Website: "BRCH3Website",
+  PayPal: "PAYPAL"
 };
 
 var DuesTiers = [
   { 
-    from: "3/8",
-    to: "3/31",
+    fromDate: "3/8",
+    toDate: "3/31",
     amount: "235"
   },
   { 
-    from: "4/1", 
-    to: "5/31", 
+    fromDate: "4/1", 
+    toDate: "5/31", 
     amount: "255"
   },
   { 
-    from: "6/1",
-    to: "7/7", 
+    fromDate: "6/1",
+    toDate: "7/7", 
     amount: "275"
   },
   { 
-    from: "7/8", 
-    to: "8/4", 
+    fromDate: "7/8", 
+    toDate: "8/4", 
     amount: "290"
   }
-]
+];
 
 var Rows = {
   // Returns range row (integer) by named range
