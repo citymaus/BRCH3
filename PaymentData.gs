@@ -132,8 +132,7 @@ class PaymentData {
           let foundMultipleCandidates = false;
           let candidate = null;
 
-          for (var i = 1; i < values.length; i++) 
-          {
+          for (var i = 1; i < values.length; i++) {
             let firstName = values[i][firstNameHeaderCol].length > 0 ? values[i][firstNameHeaderCol] : "unknown";
             let lastName  = values[i][lastNameHeaderCol].length > 0 ? values[i][lastNameHeaderCol] : "unknown";
             
@@ -422,9 +421,13 @@ class PaymentData {
     for(var i = 0; i < registeredHashNameParts.length; i++) {
       let word = registeredHashNameParts[i];
       let parenMatch = "(" + word + ")";
-      if (descriptionParts.includes(word) || descriptionParts.includes(parenMatch)) {
+      if (descriptionParts.includes(word) 
+        || descriptionParts.includes(parenMatch)) {
         foundHashName += word + " ";
       }
+    }
+    if (foundHashName.trim().toUpperCase() === "JUST") {
+      return "";
     }
     return foundHashName.trim();
   }
