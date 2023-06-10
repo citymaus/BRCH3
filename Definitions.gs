@@ -66,6 +66,8 @@ var Columns = {
   paymentsTotal     : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentsTotal').column,
   paymentDue        : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentDue').column,
   paymentDate       : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentDate').column,
+  paymentTier       : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentTier').column,
+  paymentSource     : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentSource').column,
   paymentDescription: getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.PaymentDescription').column,
   balance           : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.Balance').column,
   duesPaid          : getByRangeName(Definitions.paymentsTabName, 'ScrapedEmailData.DuesPaid').column,
