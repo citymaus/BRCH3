@@ -167,6 +167,8 @@ function addDataToSheet(paymentsSheet, row, paymentId, emailSubject, emailMsg, p
       if (ADD_DATA_TO_SHEET) {
         paymentsSheet.getRange(row, Columns.paymentId).setValue(paymentId);
         paymentsSheet.getRange(row, Columns.emailSubject).setValue(emailSubject);
+        paymentsSheet.getRange(row, Columns.paymentSource).setValue(paymentData.paymentSource);
+        paymentsSheet.getRange(row, Columns.paymentTier).setValue(paymentData.paymentTier);
         paymentsSheet.getRange(row, Columns.paymentDate).setValue(paymentData.paymentDate);     
         paymentsSheet.getRange(row, Columns.emailMessage).setValue(emailMsg);
         updateCamperNames(paymentsSheet, row, paymentData.camperNames, paymentData.paymentDue, paymentData.paymentAmountTotal);

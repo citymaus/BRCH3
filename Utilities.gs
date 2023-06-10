@@ -72,6 +72,7 @@ function calculateHabDues(hashName, totalDueCell) {
 function calculateRequiredDues(paymentDate) {
   let formattedPaymentDate = new Date(paymentDate);
   let requiredDues = "999";
+  let paymentTier = 99;
 
   for (let tier = 0; tier < DuesTiers.length; tier++) {
     let fromDate = new Date(DuesTiers[tier].fromDate + "/" + new Date().getFullYear());
@@ -79,10 +80,11 @@ function calculateRequiredDues(paymentDate) {
 
     if (formattedPaymentDate >= fromDate && formattedPaymentDate <= toDate) {
       requiredDues = DuesTiers[tier].amount;
+      paymentTier = tier + 1;
       break;
     }
   }
-  return parseFloat(requiredDues);
+  return { amount: parseFloat(requiredDues), tier: paymentTier };
 }
 
 function calculateTotalDues(earliestPaymentDate, hashName) {   
@@ -103,7 +105,7 @@ function calculateTotalDues(earliestPaymentDate, hashName) {
         if (rowHasherName == hashName) {
           let totalDueCell = values[i][totalDueHeaderCol];
           let habDues = calculateHabDues(hashName, totalDueCell);
-          let requiredDues = calculateRequiredDues(earliestPaymentDate);
+          let requiredDues = calculateRequiredDues(earliestPaymentDate).amount;
 
           totalDue = parseFloat(requiredDues) + parseFloat(habDues);
           
@@ -144,7 +146,6 @@ function getCamperNamesFromIdOverride(overrideId, totalPaid, paymentDate) {
   var manualFirstCol = Columns.manualfirstName - 1;
   var manualLastCol = Columns.manualLastName - 1;
   var manualHashCol = Columns.manualHashName - 1;
-  var totalPaidCol = Columns.paymentsTotal - 1; 
 
   var dataRange = sheet.getDataRange();
   var values = dataRange.getValues();

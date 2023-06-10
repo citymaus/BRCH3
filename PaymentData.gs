@@ -31,9 +31,11 @@ class PaymentData {
     let postResult = this.makeMultipleRowCalculations();
     this.paymentDue = this.getPaymentDue(postResult.earliestPaymentDate);
     this.paymentAmountTotal = postResult.totalPaid;
+    this.paymentTier = postResult.tier;
 
     if (VERBOSE_LOGGING) {
       Logger.log("Payment source: " + this.paymentSource); 
+      Logger.log("Payment tier: " + this.paymentTier);
       Logger.log("Payment date: " + this.paymentDate);
       Logger.log("Payment description: " + this.paymentDescription);
       Logger.log("Payment amount: " + this.paymentAmount);
@@ -399,14 +401,17 @@ class PaymentData {
         totalPaid = newSum;
 
         requiredDues = calculateRequiredDues(earliestPayment);
-        if (totalPaid >= parseCurrency(requiredDues.toString())) { 
+        if (totalPaid >= parseCurrency(requiredDues.amount.toString())) { 
           earliestCampPaymentDate = earliestPayment;
         }
       }
     } 
     requiredDues = calculateRequiredDues(earliestCampPaymentDate);
     
-    return { earliestPaymentDate: earliestCampPaymentDate, totalPaid: formatCurrency(totalPaid), requiredDues: requiredDues };
+    return { earliestPaymentDate: earliestCampPaymentDate, 
+      totalPaid: formatCurrency(totalPaid), 
+      requiredDues: requiredDues.amount,
+      tier: requiredDues.tier };
   }
 
   //--------------------------------------------------------------------
